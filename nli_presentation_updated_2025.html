@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NLI AI 전략 인터랙티브 프레젠테이션</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #003366;
+            --secondary-color: #00aaff;
+            --accent-color: #ff9900;
+            --text-color: #333;
+            --bg-color: #f4f7f9;
+            --white-color: #ffffff;
+            --slide-width: 1920px;
+            --slide-height: 1080px;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        #presentation-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #presentation-window {
+            width: var(--slide-width);
+            height: var(--slide-height);
+            background-color: var(--bg-color);
+            transform-origin: top left;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .slide {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+            transform: scale(0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 80px;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+        }
+        
+        .slide-title {
+            font-size: 64px;
+            font-weight: 900;
+            color: var(--primary-color);
+            margin-bottom: 40px;
+            text-align: center;
+            width: 100%;
+            flex-shrink: 0;
+        }
+        
+        p, h4 {
+            word-break: keep-all;
+            overflow-wrap: break-word;
+        }
+
+        /* Slide 1: Title */
+        #slide-1 {
+            background: linear-gradient(to right, rgba(0, 51, 102, 0.9) 0%, rgba(0, 51, 102, 0.4) 100%), url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=1920&h=1080&fit=crop') center/cover;
+            color: var(--white-color);
+            align-items: flex-start;
+            justify-content: center;
+            text-align: left;
+            padding: 0 120px;
+        }
+        #slide-1 .content-wrapper {
+             max-width: 65%;
+        }
+        #slide-1 .nli-logo {
+            width: 220px;
+            height: auto;
+            margin-bottom: 40px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            color: #003366;
+            text-align: center;
+            font-size: 32px;
+        }
+        #slide-1 h1 {
+            font-size: 88px;
+            font-weight: 900;
+            margin: 0;
+            line-height: 1.2;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+        }
+        #slide-1 h2 {
+            font-size: 40px;
+            font-weight: 400;
+            margin-top: 30px;
+            opacity: 0.9;
+            max-width: 900px;
+        }
+
+        /* Slide 2: Executive Summary */
+        #slide-2 .content { display: flex; width: 100%; height: 100%; gap: 50px; }
+        #slide-2 .left, #slide-2 .right { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        #slide-2 .chart-container { width: 100%; height: 500px; }
+        #slide-2 .card { background: var(--white-color); padding: 30px; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); margin-bottom: 25px; width: 90%; border-left: 8px solid var(--primary-color); }
+        #slide-2 .card h4 { font-size: 32px; color: var(--primary-color); margin: 0 0 15px 0; }
+        #slide-2 .card p { font-size: 24px; line-height: 1.6; margin: 0; }
+        #slide-2 .card .roi-teaser { color: var(--accent-color); font-weight: 700; }
+
+        /* Slide 3: NLI's Position - 고급 인터랙티브 지도 */
+        #slide-3 .content { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            width: 100%; 
+            height: 100%; 
+            justify-content: center; 
+        }
+        
+        #slide-3 .map-container { 
+            width: 85%; 
+            margin: 20px 0; 
+            position: relative; 
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        #slide-3 .interactive-map {
+            width: 100%;
+            height: 500px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #slide-3 .map-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        #slide-3 .region-btn {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.9);
+            border: 2px solid transparent;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--primary-color);
+        }
+        
+        #slide-3 .region-btn.active {
+            background: var(--white-color);
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        #slide-3 .region-btn:hover {
+            background: var(--white-color);
+            transform: translateY(-2px);
+        }
+        
+        #slide-3 .map-info {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.95);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            font-size: 14px;
+            color: var(--primary-color);
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        #slide-3 .strengths { 
+            display: flex; 
+            justify-content: space-around; 
+            width: 100%; 
+            margin-top: 25px; 
+            gap: 20px;
+        }
+        
+        #slide-3 .strength-item { 
+            text-align: center; 
+            width: 30%;
+            background: var(--white-color);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        #slide-3 .strength-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        #slide-3 .strength-item .icon { 
+            font-size: 60px; 
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        #slide-3 .strength-item h4 { 
+            font-size: 28px; 
+            color: var(--primary-color); 
+            margin: 15px 0 10px 0; 
+        }
+        
+        #slide-3 .strength-item p { 
+            font-size: 18px; 
+            line-height: 1.5; 
+            color: #666;
+        }
+
+        /* Slide 4: Market Opportunity */
+        #slide-4 .content { display: flex; justify-content: space-around; width: 100%; gap: 60px; }
+        #slide-4 .market-card { flex: 1; background: var(--white-color); padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
+        #slide-4 .market-card h4 { font-size: 36px; color: var(--primary-color); margin-bottom: 30px; }
+        #slide-4 .market-card .growth-figure { font-size: 70px; font-weight: 900; color: var(--secondary-color); }
+        #slide-4 .market-card .growth-figure.explosive { color: var(--accent-color); }
+        #slide-4 .market-card p { font-size: 24px; margin: 15px 0; }
+        #slide-4 .market-card .cagr { font-size: 48px; font-weight: 700; }
+        #slide-4 .drivers-btn { margin-top: 30px; padding: 15px 30px; font-size: 22px; background-color: var(--accent-color); color: var(--white-color); border: none; border-radius: 50px; cursor: pointer; transition: background-color 0.3s; }
+        #slide-4 .drivers-btn:hover { background-color: #e68a00; }
+        #slide-4 .keywords { margin-top: 20px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; height: 0; opacity: 0; transition: height 0.5s, opacity 0.5s; }
+        #slide-4 .keywords.show { height: 60px; opacity: 1; }
+        #slide-4 .keyword { background-color: var(--primary-color); color: var(--white-color); padding: 10px 20px; border-radius: 20px; font-size: 20px; }
+
+        /* Slide 5: Competitors */
+        #slide-5 .competitor-grid { display: flex; justify-content: center; gap: 40px; width: 100%; }
+        #slide-5 .competitor-card { background: var(--white-color); border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); width: 30%; text-align: center; padding: 30px; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; }
+        #slide-5 .competitor-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+        #slide-5 .competitor-card .logo { height: 60px; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #333; }
+        #slide-5 .competitor-card h4 { font-size: 32px; color: var(--primary-color); margin: 10px 0; }
+        #slide-5 .competitor-card p { font-size: 22px; line-height: 1.6; }
+        
+        /* Slide 6 & 7: AI Strategy */
+        .strategy-slide .content { display: flex; align-items: center; gap: 60px; width: 100%; }
+        .strategy-slide .image-container { flex: 1; }
+        .strategy-slide .image-container img { width: 100%; height: auto; border-radius: 20px; object-fit: cover; max-height: 600px;}
+        .strategy-slide .text-container { flex: 1; }
+        .strategy-slide .strategy-item { margin-bottom: 30px; display: flex; align-items: center; gap: 20px; }
+        .strategy-slide .strategy-item .icon { font-size: 60px; color: var(--secondary-color); width: 80px; text-align: center; }
+        .strategy-slide .strategy-item h4 { font-size: 32px; color: var(--primary-color); margin: 0; }
+        .strategy-slide .strategy-item p { font-size: 24px; margin: 0; color: var(--accent-color); font-weight: 700; }
+        
+        #slide-7 .solution-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; width: 100%; }
+        #slide-7 .solution-card { background: var(--white-color); padding: 30px; border-radius: 15px; border-left: 8px solid var(--secondary-color); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        #slide-7 .solution-card h4 { font-size: 30px; color: var(--primary-color); margin: 0 0 10px 0; }
+        #slide-7 .solution-card p { font-size: 22px; line-height: 1.5; }
+        #slide-7 .solution-card .roi { font-weight: 700; color: var(--accent-color); }
+
+        /* Slide 8: Roadmap */
+        #slide-8 .timeline { display: flex; width: 100%; justify-content: space-between; position: relative; margin-top: 80px; }
+        #slide-8 .timeline::before { content: ''; position: absolute; top: 50%; left: 5%; width: 90%; height: 8px; background-color: #ccc; transform: translateY(-50%); }
+        #slide-8 .timeline-item { width: 22%; text-align: center; position: relative; cursor: pointer; }
+        #slide-8 .timeline-dot { width: 40px; height: 40px; background-color: #ccc; border-radius: 50%; margin: 0 auto; border: 8px solid var(--bg-color); transition: background-color 0.3s; }
+        #slide-8 .timeline-item:hover .timeline-dot, #slide-8 .timeline-item.active .timeline-dot { background-color: var(--secondary-color); }
+        #slide-8 .timeline-phase { font-size: 28px; font-weight: 700; color: var(--primary-color); margin-top: 20px; }
+        #slide-8 .timeline-duration { font-size: 20px; color: #666; }
+        #slide-8 .timeline-cost { font-size: 22px; font-weight: 700; color: var(--accent-color); margin-top: 10px; }
+        #slide-8 .details-box { margin-top: 60px; background: var(--white-color); padding: 40px; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); width: 80%; text-align: left; opacity: 0; transition: opacity 0.5s; }
+        #slide-8 .details-box.show { opacity: 1; }
+        #slide-8 .details-box h4 { font-size: 32px; color: var(--primary-color); margin: 0 0 20px 0; }
+        #slide-8 .details-box ul { list-style: none; padding: 0; }
+        #slide-8 .details-box li { font-size: 24px; margin-bottom: 15px; }
+        #slide-8 .details-box li strong { color: var(--secondary-color); }
+
+        /* Slide 9: ROI */
+        #slide-9 { background: var(--primary-color); color: var(--white-color); }
+        #slide-9 .slide-title { color: var(--white-color); }
+        #slide-9 .roi-container { display: flex; justify-content: space-around; align-items: center; width: 100%; }
+        #slide-9 .roi-card { background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; text-align: center; width: 45%; }
+        #slide-9 .roi-card h4 { font-size: 36px; color: var(--white-color); margin-bottom: 20px; }
+        #slide-9 .roi-card .value { font-size: 72px; font-weight: 900; color: var(--accent-color); margin: 10px 0; }
+        #slide-9 .roi-card .label { font-size: 24px; opacity: 0.8; }
+        #slide-9 .total-investment { width: 100%; text-align: center; margin-top: 50px; font-size: 32px; }
+
+        /* Slide 10: Success Factors */
+        #slide-10 .factors-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; width: 90%; margin-top: 40px; }
+        #slide-10 .factor-item { display: flex; align-items: center; gap: 30px; background: var(--white-color); padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.3s; }
+        #slide-10 .factor-item:hover { transform: scale(1.03); }
+        #slide-10 .factor-item .icon { font-size: 80px; color: var(--secondary-color); }
+        #slide-10 .factor-item .text h4 { font-size: 32px; color: var(--primary-color); margin: 0 0 10px 0; }
+        #slide-10 .factor-item .text p { font-size: 22px; line-height: 1.5; margin: 0; }
+
+        /* Slide 11: Conclusion */
+        #slide-11 { background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1920&h=1080&fit=crop') center/cover; color: var(--white-color); text-align: center; }
+        #slide-11 .message { font-size: 56px; font-weight: 700; margin: 40px 0; max-width: 80%; }
+        #slide-11 .cta-button { margin-top: 50px; padding: 25px 50px; font-size: 32px; font-weight: 700; background-color: var(--accent-color); color: var(--white-color); border: none; border-radius: 50px; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        #slide-11 .cta-button:hover { transform: scale(1.05); box-shadow: 0 15px 30px rgba(255, 153, 0, 0.4); }
+
+        /* Navigation */
+        #nav-controls { position: absolute; bottom: 30px; right: 50px; display: flex; gap: 20px; z-index: 100; }
+        #nav-controls button { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--primary-color); background-color: var(--white-color); color: var(--primary-color); font-size: 30px; cursor: pointer; transition: background-color 0.3s, color 0.3s; }
+        #nav-controls button:hover { background-color: var(--primary-color); color: var(--white-color); }
+        #slide-counter { position: absolute; bottom: 45px; left: 50px; font-size: 24px; color: #999; z-index: 100; }
+        
+    </style>
+</head>
+<body>
+
+    <div id="presentation-container">
+        <div id="presentation-window">
+            <!-- Slide 1: Title -->
+            <div id="slide-1" class="slide active">
+                <div class="content-wrapper">
+                    <div class="nli-logo">
+                        <img src="images/NLICI.png" alt="NLI 로고" style="width:180px; height:auto; display:block; margin:0 auto;"
+                             onerror="this.style.display='none';this.parentNode.textContent='NLI';">
+                    </div>
+                    <h1>NLI의 새로운 도약: AI를 통한 비즈니스 혁신과 성장 기회</h1>
+                    <h2>2024-2025 제조업 AI 구현 비용 현실을 반영한 전략적 제안</h2>
+                </div>
+            </div>
+
+            <!-- Slide 2: Executive Summary -->
+            <div id="slide-2" class="slide">
+                <h3 class="slide-title">성장의 변곡점, 왜 지금 AI 혁신이 필요한가?</h3>
+                <div class="content">
+                    <div class="left">
+                        <div class="chart-container">
+                            <canvas id="financialChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="right">
+                        <div class="card">
+                            <h4>견고한 기반, 새로운 도전</h4>
+                            <p>80년 기술력과 시장 지위에도 불구, 최근 성장세 둔화에 직면했습니다.</p>
+                        </div>
+                        <div class="card">
+                            <h4>격변하는 시장 (2024-2025)</h4>
+                            <p>제조업체 기술 예산 30% 증가, AI 포장 시장 CAGR 29.3% 성장으로 급변하는 환경입니다.</p>
+                        </div>
+                        <div class="card">
+                            <h4>현실적 AI 투자 (검증된 데이터)</h4>
+                            <p>NLI 규모: 25억-30억 원 투자로 <span class="roi-teaser">12-24개월 투자 회수, 180-450% ROI</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 3: NLI's Position - 실제 인터랙티브 지도 -->
+            <div id="slide-3" class="slide">
+                 <h3 class="slide-title">NLI의 자산: 아시아를 넘어 세계로</h3>
+                 <div class="content">
+                    <div class="map-container">
+                        <div class="map-controls">
+                            <button class="region-btn active" data-region="global">전체</button>
+                            <button class="region-btn" data-region="japan">일본</button>
+                            <button class="region-btn" data-region="overseas">해외</button>
+                        </div>
+                        <div id="nli-map" class="interactive-map"></div>
+                        <div class="map-info">
+                            📍 지도 위의 점에 마우스를 올리거나 클릭하여 상세 정보를 확인하세요. | 🏢 본사 🏭 공장 🏪 영업소 🔗 연락사무소 🌐 해외거점
+                        </div>
+                    </div>
+                    <div class="strengths">
+                        <div class="strength-item"> 
+                            <div class="icon">⚙️</div> 
+                            <h4>압도적 기술력</h4> 
+                            <p>산업용 미싱 40년 독점, 전 세계 유일 생산업체</p> 
+                        </div>
+                        <div class="strength-item"> 
+                            <div class="icon">🌍</div> 
+                            <h4>글로벌 네트워크</h4> 
+                            <p>수출 비중 50%, 75개국 진출, 아시아 최대 시장 점유율</p> 
+                        </div>
+                        <div class="strength-item"> 
+                            <div class="icon">💰</div> 
+                            <h4>Medium Manufacturing Company</h4> 
+                            <p>직원 360명, 연매출 500-1,500억 원, AI 투자 적정 규모</p> 
+                        </div>
+                    </div>
+                 </div>
+            </div>
+
+            <!-- Slide 4: Market Opportunity -->
+            <div id="slide-4" class="slide">
+                <h3 class="slide-title">미래 시장의 기회: 자동화와 지능화</h3>
+                <div class="content">
+                    <div class="market-card">
+                        <h4>스마트 제조 시장</h4>
+                        <p>2024년 $349.8억</p> <div class="growth-figure">→ $791억</div> <p>2030년 예상</p> <p class="cagr">CAGR 14.7%</p>
+                        <button class="drivers-btn" data-target="keywords1">핵심 동력 보기</button>
+                        <div class="keywords" id="keywords1"> <span class="keyword">노동력 부족</span> <span class="keyword">품질 향상</span> <span class="keyword">24/7 운영</span> </div>
+                    </div>
+                    <div class="market-card">
+                        <h4>AI 포장 시장</h4>
+                        <p>2024년 $17.9억</p> <div class="growth-figure explosive">→ $234.2억</div> <p>2034년 예상</p> <p class="cagr explosive">CAGR 29.3%</p>
+                        <button class="drivers-btn" data-target="keywords2">핵심 동력 보기</button>
+                        <div class="keywords" id="keywords2"> <span class="keyword">예지보전</span> <span class="keyword">품질 검수</span> <span class="keyword">공급망 최적화</span> </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 5: Competitors -->
+            <div id="slide-5" class="slide">
+                <h3 class="slide-title">경쟁사들은 이미 AI에 탑승했습니다</h3>
+                <div class="competitor-grid">
+                    <div class="competitor-card"> 
+                        <div class="logo">
+                            <img src="images/PAYPER.jpg" alt="PAYPER 로고" style="height:40px;max-width:120px;object-fit:contain;display:block;margin:0 auto;"
+                                 onerror="this.style.display='none';this.parentNode.textContent='PAYPER';">
+                        </div> 
+                        <h4>PAYPER (스페인)</h4> 
+                        <p>Pulsar 디지털 솔루션을 통한 예지보전, AR 원격 지원 제공</p> 
+                    </div>
+                    <div class="competitor-card"> 
+                        <div class="logo">
+                            <img src="images/PREMIER.jpg" alt="Premier Tech 로고" style="height:40px;max-width:120px;object-fit:contain;display:block;margin:0 auto;"
+                                 onerror="this.style.display='none';this.parentNode.textContent='PREMIER TECH';">
+                        </div> 
+                        <h4>Premier Tech (캐나다)</h4> 
+                        <p>MS Azure 파트너십 기반 클라우드 AI, TOMA 코봇 기술 개발</p> 
+                    </div>
+                    <div class="competitor-card"> 
+                        <div class="logo">
+                            <img src="images/FUJI.jpg" alt="Fuji Machinery 로고" style="height:40px;max-width:120px;object-fit:contain;display:block;margin:0 auto;"
+                                 onerror="this.style.display='none';this.parentNode.textContent='FUJI';">
+                        </div> 
+                        <h4>Fuji Machinery (일본)</h4> 
+                        <p>AI 기반 SMT 라인과 전자 제어 시스템으로 업계 선도</p> 
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 6: AI Strategy 1 -->
+            <div id="slide-6" class="slide strategy-slide">
+                <h3 class="slide-title">NLI AI 전략 1: Smart Factory - 생산성의 비약적 향상</h3>
+                <div class="content">
+                    <div class="image-container"> 
+                        <img src="images/smartfactory.png" alt="Smart Factory" style="width:100%;height:400px;object-fit:cover;border-radius:20px;display:block;"
+                             onerror="this.style.display='none';this.parentNode.innerHTML='<div style=&quot;width:100%;height:400px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:20px;display:flex;align-items:center;justify-content:center;color:white;font-size:48px;&quot;>🏭 Smart Factory</div>';">
+                    </div>
+                    <div class="text-container">
+                        <div class="strategy-item"> <div class="icon">📈</div> <div> <h4>OEE 25% 향상</h4> <p>AI 도입으로 전체 장비 효율성(OEE) 극대화</p> </div> </div>
+                        <div class="strategy-item"> <div class="icon">🔧</div> <div> <h4>장비 가동률 20% 향상</h4> <p>AI 예지보전으로 다운타임 최소화</p> </div> </div>
+                        <div class="strategy-item"> <div class="icon">💻</div> <div> <h4>생산성 38% 향상</h4> <p>디지털 트윈 기술로 공정 시뮬레이션 및 최적화</p> </div> </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 7: AI Strategy 2 -->
+            <div id="slide-7" class="slide strategy-slide">
+                <h3 class="slide-title">NLI AI 전략 2: 지능형 서비스 - 새로운 고객 가치 창출</h3>
+                <div class="solution-cards">
+                    <div class="solution-card" data-industry="반도체">
+                        <h4>반도체 클린룸 고객</h4>
+                        <p>ISO 4-6 클린룸 환경 대응, 99.9% 이상 품질 검사 정확도 제공. <span class="roi">투자비: 1억-5억원, ROI 400%</span></p>
+                    </div>
+                    <div class="solution-card" data-industry="식품/의료">
+                        <h4>식품 포장 고객</h4>
+                        <p>HACCP 기준 준수, 유통기한 연장으로 폐기물 30% 감소. <span class="roi">투자비: 5천만-2억원, ROI 320%</span></p>
+                    </div>
+                     <div class="solution-card" data-industry="일반 제조업">
+                        <h4>제약/의료 고객</h4>
+                        <p>GMP 기준 준수 및 99.99% 품질 보증. <span class="roi">투자비: 2억-10억원, ROI 450%</span></p>
+                    </div>
+                    <div class="solution-card" data-industry="모든 산업">
+                        <h4>일반 제조업 고객</h4>
+                        <p>범용 AI 품질 관리로 비용 최적화. <span class="roi">투자비: 3천만-1억원, ROI 280%</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 8: Roadmap -->
+            <div id="slide-8" class="slide">
+                <h3 class="slide-title">성공을 위한 체계적 접근: 4단계 AI 도입 로드맵</h3>
+                <div class="timeline">
+                    <div class="timeline-item" data-id="1"> 
+                        <div class="timeline-dot"></div> 
+                        <div class="timeline-phase">1단계: Foundation</div> 
+                        <div class="timeline-duration">1-6개월</div> 
+                        <div class="timeline-cost">3천만-8천만원</div>
+                    </div>
+                    <div class="timeline-item" data-id="2"> 
+                        <div class="timeline-dot"></div> 
+                        <div class="timeline-phase">2단계: Optimization</div> 
+                        <div class="timeline-duration">7-18개월</div> 
+                        <div class="timeline-cost">5억-20억원</div>
+                    </div>
+                    <div class="timeline-item" data-id="3"> 
+                        <div class="timeline-dot"></div> 
+                        <div class="timeline-phase">3단계: Automation</div> 
+                        <div class="timeline-duration">19-36개월</div> 
+                        <div class="timeline-cost">4.5억-65억원</div>
+                    </div>
+                    <div class="timeline-item" data-id="4"> 
+                        <div class="timeline-dot"></div> 
+                        <div class="timeline-phase">4단계: Ecosystem</div> 
+                        <div class="timeline-duration">37개월 이후</div> 
+                        <div class="timeline-cost">50억-500억원</div>
+                    </div>
+                </div>
+                <div id="roadmap-details" class="details-box"></div>
+            </div>
+
+            <!-- Slide 9: ROI -->
+            <div id="slide-9" class="slide">
+                <h3 class="slide-title">현실적인 투자 대비 효과 분석 (검증된 제조업 데이터)</h3>
+                <div class="roi-container">
+                    <div class="roi-card">
+                        <h4>NLI 규모 맞춤형<br>(직원 360명, 중규모 제조업체)</h4>
+                        <p class="value">180-450%</p>
+                        <p class="label">3년 누적 ROI</p>
+                        <p class="value" style="font-size: 48px; margin-top: 20px;">12-24개월</p>
+                        <p class="label">투자 회수 기간</p>
+                    </div>
+                    <div class="roi-card">
+                        <h4>업계 벤치마크<br>(2024-2025 실제 데이터)</h4>
+                        <p class="value">$12.36M</p>
+                        <p class="label">연간 절감액 (예지보전)</p>
+                        <p class="value" style="font-size: 48px; margin-top: 20px;">6-12개월</p>
+                        <p class="label">가장 빠른 ROI (Predictive Maintenance)</p>
+                    </div>
+                </div>
+                <p class="total-investment">NLI 권장 총 투자액: 25억-30억 원 (연매출의 0.5-2%)</p>
+            </div>
+
+            <!-- Slide 10: Success Factors -->
+            <div id="slide-10" class="slide">
+                <h3 class="slide-title">성공적인 AI 혁신을 위한 핵심 동력</h3>
+                <div class="factors-grid">
+                    <div class="factor-item"> 
+                        <div class="icon">⚡</div> 
+                        <div class="text"> 
+                            <h4>Predictive Maintenance 우선 도입</h4> 
+                            <p>6-12개월 가장 빠른 ROI, 다운타임 50% 감소로 즉시 효과 체감</p> 
+                        </div> 
+                    </div>
+                    <div class="factor-item"> 
+                        <div class="icon">👥</div> 
+                        <div class="text"> 
+                            <h4>인력·프로세스 70% 투자</h4> 
+                            <p>기술 30% vs 인력·프로세스 70% 비율이 성공의 핵심 (제조업 성공 패턴)</p> 
+                        </div> 
+                    </div>
+                    <div class="factor-item"> 
+                        <div class="icon">🗺️</div> 
+                        <div class="text"> 
+                            <h4>단계적 접근 (POC 넘어선 실제 적용)</h4> 
+                            <p>22%만이 POC를 넘어 성공. 체계적인 4단계 로드맵으로 리스크 최소화</p> 
+                        </div> 
+                    </div>
+                    <div class="factor-item"> 
+                        <div class="icon">🤝</div> 
+                        <div class="text"> 
+                            <h4>전략적 파트너십 & 정부 지원</h4> 
+                            <p>글로벌 AI 플랫폼과 협력, 일본 정부 JPY 10조엔 AI 투자 프로그램 활용</p> 
+                        </div> 
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 11: Conclusion -->
+            <div id="slide-11" class="slide">
+                <div class="message">2024-2025 제조업 AI 구현 비용 현실을 반영한 NLI의 전략적 선택</div>
+                <div class="message" style="color: var(--secondary-color);">80년 기술력 + 현실적 AI 투자 = NLI의 지속가능한 성장</div>
+                <div class="message" style="font-size: 40px; margin: 30px 0;">
+                    성공의 핵심: Predictive Maintenance → Computer Vision → Digital Twin → Smart Factory
+                </div>
+                <button class="cta-button">1단계 IoT 인프라 구축 즉시 착수 제안</button>
+            </div>
+
+            <!-- Navigation -->
+            <div id="nav-controls"> <button id="prev-btn">‹</button> <button id="next-btn">›</button> </div>
+            <div id="slide-counter">1 / 11</div>
+            
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Presentation Logic ---
+            const slides = document.querySelectorAll('.slide');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const slideCounter = document.getElementById('slide-counter');
+            let currentSlide = 0;
+            const totalSlides = slides.length;
+
+            function showSlide(index) {
+                slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
+                currentSlide = index;
+                slideCounter.textContent = `${currentSlide + 1} / ${totalSlides}`;
+                if (index === 1) renderFinancialChart();
+                if (index === 2) initializeNLIMap();
+                if (index === 7) document.querySelector('.timeline-item[data-id="1"]').click();
+            }
+
+            // 이벤트 리스너는 한 번만 등록
+            nextBtn.addEventListener('click', () => showSlide((currentSlide + 1) % totalSlides));
+            prevBtn.addEventListener('click', () => showSlide((currentSlide - 1 + totalSlides) % totalSlides));
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight') nextBtn.click();
+                else if (e.key === 'ArrowLeft') prevBtn.click();
+            });
+
+            // Slide 4: Market Opportunity Buttons
+            document.querySelectorAll('.drivers-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.getElementById(btn.dataset.target).classList.toggle('show');
+                });
+            });
+
+            // --- Window Resizing ---
+            const presentationWindow = document.getElementById('presentation-window');
+            function resizePresentation() {
+                const { clientWidth, clientHeight } = document.getElementById('presentation-container');
+                const scale = Math.min(clientWidth / 1920, clientHeight / 1080);
+                presentationWindow.style.transform = `scale(${scale})`;
+            }
+            window.addEventListener('resize', resizePresentation);
+            resizePresentation();
+
+            // --- Slide 2: Financial Chart ---
+            let financialChartInstance = null;
+            function renderFinancialChart() {
+                if (financialChartInstance) return;
+                const ctx = document.getElementById('financialChart').getContext('2d');
+                financialChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['2020', '2021', '2022', '2023', '2024'],
+                        datasets: [{
+                            label: '매출 (억원)',
+                            data: [1088.13, 1337.79, 1582.32, 1532.25, 1386.43],
+                            backgroundColor: 'rgba(0, 170, 255, 0.6)',
+                            borderColor: 'rgba(0, 170, 255, 1)',
+                            yAxisID: 'y',
+                        }, {
+                            label: '영업이익률 (%)',
+                            data: [3.03, 8.33, 17.11, 17.65, 12.89],
+                            backgroundColor: 'rgba(255, 153, 0, 0.8)',
+                            borderColor: 'rgba(255, 153, 0, 1)',
+                            yAxisID: 'y1',
+                            type: 'line',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: {
+                            y: { type: 'linear', position: 'left', title: { display: true, text: '매출 (억원)' } },
+                            y1: { type: 'linear', position: 'right', title: { display: true, text: '영업이익률 (%)' }, grid: { drawOnChartArea: false } }
+                        }
+                    }
+                });
+            }
+
+            // --- Slide 3: Interactive Map ---
+            const nliLocations = [
+                // Japan
+                { name: 'Sapporo Sales Office', type: 'Sales Office', region: 'Japan', lat: 43.0621, lon: 141.3544 },
+                { name: 'Odate Factory', type: 'Factory', region: 'Japan', lat: 40.2769, lon: 140.5672 },
+                { name: 'Tohoku Liaison Office', type: 'Liaison Office', region: 'Japan', lat: 38.2682, lon: 140.8694 },
+                { name: 'Sendai Sales Office', type: 'Sales Office', region: 'Japan', lat: 38.2682, lon: 140.8694 },
+                { name: 'Kitakata Factory', type: 'Factory', region: 'Japan', lat: 37.6490, lon: 139.8700 },
+                { name: 'Kitakata Sales Office', type: 'Sales Office', region: 'Japan', lat: 37.6490, lon: 139.8700 },
+                { name: 'Koide Factory', type: 'Factory', region: 'Japan', lat: 37.2215, lon: 139.0494 },
+                { name: 'Fujioka Factory', type: 'Factory', region: 'Japan', lat: 36.2558, lon: 139.0736 },
+                { name: 'Tokyo Head Office', type: 'Head Office', region: 'Japan', lat: 35.6895, lon: 139.6917 },
+                { name: 'Tokyo Engineering Dept.', type: 'Engineering', region: 'Japan', lat: 35.6895, lon: 139.6917 },
+                { name: 'Chiba Sales Office', type: 'Sales Office', region: 'Japan', lat: 35.6074, lon: 140.1065 },
+                { name: 'Yokohama Sales Office', type: 'Sales Office', region: 'Japan', lat: 35.4437, lon: 139.6380 },
+                { name: 'Nagoya Sales Office', type: 'Sales Office', region: 'Japan', lat: 35.1815, lon: 136.9066 },
+                { name: 'Osaka Sales Office', type: 'Sales Office', region: 'Japan', lat: 34.6937, lon: 135.5023 },
+                { name: 'Fukuoka Sales Office', type: 'Sales Office', region: 'Japan', lat: 33.5904, lon: 130.4017 },
+                // Overseas (Key locations)
+                { name: 'Hong Kong Office', type: 'Overseas Office', region: 'Overseas', lat: 22.3193, lon: 114.1694 },
+                { name: 'Shanghai Office', type: 'Overseas Office', region: 'Overseas', lat: 31.2304, lon: 121.4737 },
+                { name: 'Taiwan Taipei', type: 'Overseas Office', region: 'Overseas', lat: 25.0330, lon: 121.5654 },
+                { name: 'Taiwan Kaohsiung', type: 'Overseas Office', region: 'Overseas', lat: 22.6273, lon: 120.3014 },
+                { name: 'Philippines Manila', type: 'Overseas Office', region: 'Overseas', lat: 14.5995, lon: 120.9842 },
+                { name: 'Malaysia KL', type: 'Overseas Office', region: 'Overseas', lat: 3.1390, lon: 101.6869 },
+                { name: 'Singapore Office', type: 'Overseas Office', region: 'Overseas', lat: 1.3521, lon: 103.8198 },
+                { name: 'Thailand Bangkok', type: 'Overseas Office', region: 'Overseas', lat: 13.7563, lon: 100.5018 },
+                { name: 'Indonesia Jakarta', type: 'Overseas Office', region: 'Overseas', lat: -6.2088, lon: 106.8456 },
+                { name: 'Vietnam Ho Chi Minh', type: 'Overseas Office', region: 'Overseas', lat: 10.8231, lon: 106.6297 },
+                { name: 'UAE Dubai', type: 'Overseas Office', region: 'Overseas', lat: 25.2744, lon: 55.2963 },
+                { name: 'Germany Office', type: 'Overseas Office', region: 'Overseas', lat: 51.2277, lon: 6.7735 },
+                { name: 'USA Portland', type: 'Overseas Office', region: 'Overseas', lat: 45.5152, lon: -122.6784 }
+            ];
+
+            const typeColors = {
+                'Sales Office': '#EF4444',
+                'Factory': '#10B981',
+                'Liaison Office': '#F59E0B',
+                'Head Office': '#8B5CF6',
+                'Engineering': '#3B82F6',
+                'Overseas Office': '#EC4899'
+            };
+
+            let nliMapInstance = null;
+
+            function initializeNLIMap() {
+                if (nliMapInstance) return;
+
+                const mapDiv = document.getElementById('nli-map');
+                const locationTypes = [...new Set(nliLocations.map(loc => loc.type))];
+
+                const mapLayout = {
+                    geo: {
+                        scope: 'world',
+                        projection: { type: 'natural earth' },
+                        showland: true,
+                        landcolor: '#EAE7E1',
+                        subunitcolor: '#DCD9D4',
+                        countrycolor: '#DCD9D4',
+                        showlakes: true,
+                        lakecolor: '#FFFFFF',
+                        bgcolor: '#F8F7F4',
+                        center: { lat: 20, lon: 80 },
+                        lataxis: { range: [-40, 70] },
+                        lonaxis: { range: [-20, 160] }
+                    },
+                    margin: { t: 10, b: 10, l: 10, r: 10 },
+                    showlegend: false
+                };
+
+                function updateNLIMap(selectedRegion = 'global') {
+                    let filteredLocations = nliLocations;
+                    if (selectedRegion !== 'global') {
+                        filteredLocations = nliLocations.filter(loc => loc.region.toLowerCase() === selectedRegion);
+                    }
+
+                    const data = locationTypes.map(type => {
+                        const locationsOfType = filteredLocations.filter(loc => loc.type === type);
+                        return {
+                            type: 'scattergeo',
+                            mode: 'markers',
+                            lon: locationsOfType.map(loc => loc.lon),
+                            lat: locationsOfType.map(loc => loc.lat),
+                            text: locationsOfType.map(loc => `${loc.name}<br>Type: ${loc.type}`),
+                            marker: {
+                                color: typeColors[type] || '#6B7280',
+                                size: type === 'Head Office' ? 12 : type === 'Factory' ? 10 : 8,
+                                opacity: 0.8,
+                                symbol: type === 'Head Office' ? 'star' : type === 'Factory' ? 'square' : 'circle',
+                                line: { width: 1, color: 'rgba(255, 255, 255, 0.7)' }
+                            },
+                            hoverinfo: 'text',
+                            name: type
+                        };
+                    }).filter(trace => trace.lon.length > 0);
+
+                    let newLayout = { ...mapLayout };
+                    if (selectedRegion === 'japan') {
+                        newLayout.geo.center = { lat: 36, lon: 138 };
+                        newLayout.geo.lataxis = { range: [30, 46] };
+                        newLayout.geo.lonaxis = { range: [128, 147] };
+                    } else if (selectedRegion === 'overseas') {
+                        newLayout.geo.center = { lat: 15, lon: 100 };
+                        newLayout.geo.lataxis = { range: [-10, 60] };
+                        newLayout.geo.lonaxis = { range: [50, 150] };
+                    }
+
+                    Plotly.react(mapDiv, data, newLayout, { responsive: true, displaylogo: false });
+                }
+
+                // Region filter buttons
+                document.querySelectorAll('#slide-3 .region-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('#slide-3 .region-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        updateNLIMap(btn.dataset.region);
+                    });
+                });
+
+                updateNLIMap(); // Initial load
+                nliMapInstance = true;
+            }
+
+            // --- Slide 8: Roadmap ---
+            const timelineItems = document.querySelectorAll('.timeline-item');
+            const detailsBox = document.getElementById('roadmap-details');
+            const roadmapData = {
+                1: { 
+                    title: "1단계: Foundation - IoT 센서 인프라 구축", 
+                    details: [
+                        "<strong>투자 비용:</strong> 3,000만-8,000만 원 (실제 제조업 평균)",
+                        "<strong>IoT 센서:</strong> $0.44/개 (2024년 기준, 2004년 $1.30에서 감소)",
+                        "<strong>네트워크 배포:</strong> 중규모 생산 라인 $30,000-80,000",
+                        "<strong>기대 효과:</strong> 실시간 생산 데이터 가시성, 5-10% 효율성 향상",
+                        "<strong>시스템 통합:</strong> 초기 개발 비용의 50-200%"
+                    ] 
+                },
+                2: { 
+                    title: "2단계: Optimization - 예지보전 및 품질관리 AI", 
+                    details: [
+                        "<strong>투자 비용:</strong> 5억-20억 원 (중규모 제조업체 실제 비용)",
+                        "<strong>Predictive Maintenance:</strong> $500,000-2 million (중규모 시설)",
+                        "<strong>Computer Vision 품질 관리:</strong> $50,000-200,000/검사 스테이션",
+                        "<strong>가장 빠른 ROI:</strong> 6-12개월 투자 회수 기간",
+                        "<strong>검증된 효과:</strong> 다운타임 50% 감소, 고장 70% 감소, 유지보수 비용 25% 감소"
+                    ] 
+                },
+                3: { 
+                    title: "3단계: Automation - 디지털 트윈 및 고급 최적화", 
+                    details: [
+                        "<strong>투자 비용:</strong> 4억 5천만-65억 원",
+                        "<strong>기본 Product Twin:</strong> $45,000-65,000",
+                        "<strong>Enterprise-wide 구현:</strong> $10-50 million",
+                        "<strong>Digital Twin 시장:</strong> CAGR 41.6% 성장",
+                        "<strong>기대 효과:</strong> 생산 효율성 20-30% 향상, 근로자 생산성 38% 향상"
+                    ] 
+                },
+                4: { 
+                    title: "4단계: Ecosystem - 완전 통합 스마트팩토리", 
+                    details: [
+                        "<strong>투자 비용:</strong> 50억-500억 원 (대기업 수준 전환)",
+                        "<strong>Smart Factory 전환:</strong> 중견기업 $500,000-5 million",
+                        "<strong>Edge Computing 인프라:</strong> $50,000-200,000 (기본) ~ $2-10 million",
+                        "<strong>AI 소프트웨어 라이선싱:</strong> $1,000-100,000/월",
+                        "<strong>기대 효과:</strong> 전체 생산성 30-40% 향상, 매출 15-25% 증가"
+                    ] 
+                }
+            };
+            timelineItems.forEach(item => item.addEventListener('click', () => {
+                const data = roadmapData[item.dataset.id];
+                timelineItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                detailsBox.classList.remove('show');
+                setTimeout(() => {
+                    detailsBox.innerHTML = `<h4>${data.title}</h4><ul>${data.details.map(d => `<li>${d}</li>`).join('')}</ul>`;
+                    detailsBox.classList.add('show');
+                }, 300);
+            }));
+
+            // Initialize
+            showSlide(0);
+        });
+    </script>
+</body>
+</html>
