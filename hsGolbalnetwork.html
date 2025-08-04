@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>효성중공업 글로벌 네트워크</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    
+    <!-- Leaflet MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            overflow-x: hidden;
+        }
+        
+
+        #header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        #header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+        
+        #header p {
+            margin: 10px 0 0 0;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        #map {
+            width: 100%;
+            min-height: 400px;
+            height: 60vh;
+            max-width: 100%;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        
+        #stats {
+            background: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            height: 100px;
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 100%;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #2a5298;
+            margin: 0;
+        }
+        
+        .stat-label {
+            font-size: 1em;
+            color: #666;
+            margin: 5px 0 0 0;
+        }
+        
+        .custom-popup {
+            font-size: 14px;
+        }
+        
+        .custom-popup h3 {
+            margin: 0 0 10px 0;
+            color: #1e3c72;
+            font-size: 16px;
+            border-bottom: 2px solid #2a5298;
+            padding-bottom: 5px;
+        }
+        
+        .custom-popup .location-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 3px solid #2a5298;
+        }
+        
+        .custom-popup .location-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .custom-popup .location-address {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .custom-popup .location-contact {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        .legend {
+            position: absolute;
+            bottom: 40px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            min-width: 200px;
+        }
+        
+        .legend h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+        }
+        
+        @media (max-width: 768px) {
+            #header h1 {
+                font-size: 1.8em;
+            }
+            #header p {
+                font-size: 1em;
+            }
+            #stats {
+                flex-wrap: wrap;
+                height: auto;
+                padding: 10px;
+            }
+            .stat-item {
+                flex: 1 1 50%;
+                margin: 10px 0;
+            }
+            .stat-number {
+                font-size: 2em;
+            }
+            .legend {
+                bottom: 20px;
+                right: 10px;
+                padding: 10px;
+                font-size: 0.9em;
+            }
+            .legend-color {
+                width: 15px;
+                height: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <h1>효성중공업 글로벌 네트워크</h1>
+        <p>전 세계에 펼쳐진 효성중공업의 글로벌 네트워크를 확인하세요</p>
+    </div>
+    <div id="map"></div>
+    <div id="stats">
+        <div class="stat-item">
+            <p class="stat-number" id="totalCountries">0</p>
+            <p class="stat-label">진출 국가</p>
+        </div>
+        <div class="stat-item">
+            <p class="stat-number" id="totalOffices">0</p>
+            <p class="stat-label">사업장 수</p>
+        </div>
+        <div class="stat-item">
+            <p class="stat-number" id="totalContinents">0</p>
+            <p class="stat-label">진출 대륙</p>
+        </div>
+    </div>
+    <div class="legend">
+        <h4>지역별 구분</h4>
+        <!-- 범례 내용은 JavaScript에서 동적으로 생성됩니다. -->
+    </div>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Leaflet MarkerCluster JS -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script>
+    // 글로벌 네트워크 데이터
+    const networkData = {
+        korea: { name: "대한민국", color: "#d63031", locations: [ { name: "효성중공업㈜ 본사", city: "서울", lat: 37.5665, lng: 126.9780, address: "(04144)서울시 마포구 마포대로 119(공덕동)", tel: "02-707-6000", fax: "02-707-7799" }, { name: "효성중공업㈜ 건설부문 본사", city: "서울", lat: 37.5600, lng: 126.9850, address: "(04529)서울특별시 중구 퇴계로67 AK타워", tel: "02-707-4400", fax: "02-707-4401" }, { name: "창원1공장", city: "창원", lat: 35.2280, lng: 128.6811, address: "(51529)경남 창원시 성산구 연덕로 171(내동)", tel: "055-268-8000", fax: "055-268-9029" }, { name: "창원3공장", city: "창원", lat: 35.2300, lng: 128.6850, address: "(51559)경남 창원시 성산구 공단로 303(웅남동)", tel: "055-279-7607", fax: "055-281-0092" } ] },
+        asia: { name: "아시아", color: "#0984e3", locations: [ { name: "Nantong Hyosung Transformer Co., Ltd.", city: "난퉁", country: "중국", lat: 32.0617, lng: 120.8948, address: "No.88 Xiaoxing Avenue, Haian Development Zone, Nantong City, Jiangsu Province, China", tel: "86-513-8883-2852", fax: "86-513-8881-6379" }, { name: "Hyosung International Trade (Jiaxing) Co., Ltd. Beijing Branch Company", city: "베이징", country: "중국", lat: 39.9042, lng: 116.4074, address: "Room No. 1401 14/F., Scitech Tower, No.22 JianGuo Men Wai Street, Beijing, China", tel: "86-10-6512-9692", fax: "86-10-6512-0031" }, { name: "Hyosung International Trade (Jiaxing) Co., Ltd. Shanghai Branch Company", city: "상하이", country: "중국", lat: 31.2304, lng: 121.4737, address: "Room No.1111, Shanghai International Trading Center No.2201, West Yan'an Road, Shanghai, China", tel: "86-21-6209-0123", fax: "86-21-6209-3008" }, { name: "Hyosung International Trade (Jiaxing) Co., Ltd. Guangzhou Branch Company", city: "광저우", country: "중국", lat: 23.1291, lng: 113.2644, address: "Unit 1501-1502, Building C, R&F New World Center, No.307 Middle Guangzhou Avenue, Guangzhou, China", tel: "86-20-3765-7458", fax: "86-20-3765-7481" }, { name: "PT Hyosung Jakarta", city: "자카르타", country: "인도네시아", lat: -6.2088, lng: 106.8456, address: "District 8, Prosperity Tower 18Fl. Unit H/G, 5, RT.5/RW.3, Senayan, Kebayoran Baru, South Jakarta City, Jakarta 12190", tel: "62-21-5031-1014~5", fax: "62-21-5031-1016" }, { name: "PT Hyosung Jakarta TNS Office", city: "자카르타", country: "인도네시아", lat: -6.2200, lng: 106.8100, address: "Treasury Tower, 53rd Fl. Unit F, District 8, SCBD Lot 2B, Jl. Jend Sudirman Kav 52-53 Jakarta 12190", tel: "62-21-2933-2891~2", fax: "62-21-2933-2893" }, { name: "Hyosung T&D India Pvt. Ltd.", city: "푸네", country: "인도", lat: 18.5204, lng: 73.8567, address: "Plot No. IP-11, Khed City, Village Nimgaon, Khed Taluka, Pune 410505, Maharashtra, India", tel: "91-213-563-1700" }, { name: "Hyosung Corporation India Pvt. Ltd. (Haryana)", city: "구르가온", country: "인도", lat: 28.4595, lng: 77.0266, address: "2nd Floor, Building No 8, Tower B, DLF Cyber City, Phase II, Gurgaon, Haryana, India", tel: "91-124-626-7777" }, { name: "Hyosung Corporation India Pvt. Ltd. (Mumbai Office)", city: "뭄바이", country: "인도", lat: 19.0760, lng: 72.8777, address: "Cyber One, 8th Floor, Office No:- 808, Opposite:- CIDCO Exhibition Centre, Sector 30A, Vashi-400703, Navi Mumbai", tel: "91-224-120-5997" }, { name: "Hyosung Corporation India Pvt. Ltd. (Chennai Office)", city: "첸나이", country: "인도", lat: 13.0827, lng: 80.2707, address: "3rd Floor, Prestige Palladium Bayan, No. 129-140, Greams Road, Thousand Lights, Chennai, Tamil Nadu 600006", tel: "91-996-225-8449" }, { name: "Hyosung TNC Corporation Bangkok Office", city: "방콕", country: "태국", lat: 13.7563, lng: 100.5018, address: "14FL. Room No. 1404, One Pacific Place 142 Sukhumvit Road, Bangkok, Thailand", tel: "66-2-653-2031~3", fax: "66-2-653-2030" }, { name: "Hyosung Vina Construction Company Limited", city: "호치민", country: "베트남", lat: 10.7769, lng: 106.6953, address: "18th floor, CJ Building, 2Bis-4-6 Le Thanh Ton Street, Ben Nghe Ward, District 1, Ho Chi Minh City", tel: "84-282-2212-0244" }, { name: "Hyosung Vina Industrial Machinery Limited", city: "동나이", country: "베트남", lat: 10.9517, lng: 106.8425, address: "N3 Street, Nhon Trach 5 Industrial Zone, Hiep Phuoc Town, Nhon Trach District, Dong Nai Province", tel: "84-91-895-3259" }, { name: "Hyosung Dong Nai Co., Ltd. (Hochiminh Trading Office)", city: "호치민", country: "베트남", lat: 10.7800, lng: 106.7000, address: "10th Floor, Vincom Center B Tower, 72 Le Thanh Ton Street, District 1, Hochiminh City", tel: "84-28-3825-1617", fax: "84-28-3823-1971" }, { name: "Hyosung Global Logistics Vina Co., Ltd.", city: "호치민", country: "베트남", lat: 10.7820, lng: 106.6980, address: "L9-08B-09, 9th Floor, Vincom Center Dong Khoi Building, 72 Le Thanh Ton Street, Ben Nghe Ward, District 1", tel: "84-28-7300-6577" }, { name: "Hyosung TNC Corporation Kuala Lumpur Office", city: "쿠알라룸푸르", country: "말레이시아", lat: 3.1390, lng: 101.6869, address: "Suite 23-01, Level 23 Wisma Goldhill, No.67, Jalan Raja Chulan, 50200 Kuala lumpur", tel: "60-3-2031-2416", fax: "60-3-2031-2417" }, { name: "Hyosung Japan", city: "도쿄", country: "일본", lat: 35.6762, lng: 139.6503, address: "SVAX TT Building 6/F, 11-15, 3-Chome, Toranomon Minato-ku, Tokyo", tel: "81-3-3432-1005", fax: "81-3-3459-9300" }, { name: "Hyosung Japan Osaka Branch", city: "오사카", country: "일본", lat: 34.6937, lng: 135.5023, address: "8th Floor Sun Mullion NBF Tower, 6-12, Minami-Honmachi 2-Chome, Chuo-ku, Osaka", tel: "81-6-6253-3500", fax: "81-6-6253-3501" }, { name: "Hyosung International (HK) Ltd.", city: "홍콩", country: "홍콩", lat: 22.3193, lng: 114.1694, address: "Suite 3510, Tower 6, The Gateway, 9 Canton Road, Tsimshatsui, Kowloon", tel: "852-2845-6778", fax: "852-2845-5752" }, { name: "Hyosung TNC Singapore Branch", city: "싱가포르", country: "싱가포르", lat: 1.3521, lng: 103.8198, address: "Suite 25 at 9 Temasek Boulevard, Suntec Tower 2, Singapore 038989", tel: "65-6337-2079", fax: "65-6339-4504" }, { name: "Hyosung TNC Corporation Dhaka Office", city: "다카", country: "방글라데시", lat: 23.8103, lng: 90.4125, address: "House # 25 ( 6th Floor ), Road 11, Block, Banani, Dhaka-1213", tel: "880-18-9498-2860" }, { name: "Hyosung TNC (Taiwan) Corporation", city: "타이베이", country: "대만", lat: 25.0330, lng: 121.5654, address: "1714, 17/F, International Trade Building, No.333, Sec1, Keelung Road, Taipei 110", tel: "886-2-2758-4636", fax: "886-2-2729-6410" }, { name: "Hyosung TNC (Taiwan) Corporation Kaohsiung Office", city: "가오슝", country: "대만", lat: 22.6273, lng: 120.3014, address: "23F-A3, No.6, Siwei 3rd Rd., Lingya Dist., Kaohsiung 802", tel: "886-7-335-2028", fax: "886-7-335-4096" } ] },
+        europe: { name: "유럽", color: "#00b894", locations: [ { name: "Hyosung Heavy Industries Corporation UK Branch", city: "런던", country: "영국", lat: 51.5074, lng: -0.1278, address: "15th Floor, CI Tower, St George's Square, New Malden, KT3 4TE, Surrey", tel: "44-20-8942-1612" }, { name: "Hyosung Heavy Industries Corporation Spain, S.L", city: "마드리드", country: "스페인", lat: 40.4168, lng: -3.7038, address: "C/ Quintanavides 17, P. 3º F, 28050 Madrid, Spain", tel: "34-645-736-617" }, { name: "Hyosung Spain, S.L", city: "바르셀로나", country: "스페인", lat: 41.3851, lng: 2.1734, address: "Calle de Entenca, 325, 08029 Barcelona, Spain", tel: "34-93-430-7735", fax: "34-93-410-1737" }, { name: "Hyosung Europe S.R.L.", city: "밀라노", country: "이탈리아", lat: 45.4642, lng: 9.1900, address: "Via del Tecchione 34, 20098 San Giuliano Milanese (MI), ltaly", tel: "39-02-9886-251", fax: "39-02-9828-2481" }, { name: "Hyosung TNC Corporation Frankfurt Office", city: "프랑크푸르트", country: "독일", lat: 50.1109, lng: 8.6821, address: "3 Obergeschoss, Mergenthalerallee 15-21, 65760 Eschborn, Germany", tel: "49-6196-64024-10", fax: "49-06172-85532-90" }, { name: "Hyosung Russia LLC.", city: "모스크바", country: "러시아", lat: 55.7558, lng: 37.6173, address: "Prospect Vernadskogo 6, Business Center 5th Floor, Moscow, 119311", tel: "7-495-510-6131" }, { name: "Hyosung Heavy Industries R&D Centre Netherlands", city: "아른헴", country: "네덜란드", lat: 51.9851, lng: 5.8987, address: "Utrechtseweg 310 B31, 6812 AR Arnhem, Netherlands" } ] },
+        middleEast: { name: "중동", color: "#e17055", locations: [ { name: "Hyosung Heavy Industries Corporation Saudi Arabia Office", city: "리야드", country: "사우디아라비아", lat: 24.7136, lng: 46.6753, address: "P.O.Box 2807 Jareer Street, Malaz, Riyadh, Kingdom of Saudi Arabia", tel: "966-53-094-8139", fax: "966-11-292-1178" }, { name: "Hyosung Heavy Industries Corporation Abu Dhabi Office", city: "아부다비", country: "아랍에미리트", lat: 24.4539, lng: 54.3773, address: "P.O.Box 133662, Office No.311 A&B, Al Fahim Building, Street No.10, Plot M4, Musaffah Industrial Area", tel: "971-25-50-2866" }, { name: "Hyosung TNC Corporation Dubai Office", city: "두바이", country: "아랍에미리트", lat: 25.2048, lng: 55.2708, address: "P.O.Box 15287, Office No.804, Green Tower, Riggat Al Buteen Street , Deira", tel: "971-42-21-8483", fax: "971-42-27-5183" }, { name: "Hyosung Heavy Industries Kuwait Office", city: "쿠웨이트 시티", country: "쿠웨이트", lat: 29.3759, lng: 47.9774, address: "Office No. C, Floor 19, Jasim Tower, Al-Soor St, Block 1, Mirqab", tel: "965-2228-6827", fax: "965-2228-9118" }, { name: "Hyosung Istanbul Tekstil Ltd Sti", city: "이스탄불", country: "튀르키예", lat: 41.0082, lng: 28.9784, address: "Buyukdere Caddesi Noramin Is Merkezi NO :237 Kat:3 Daire:301, Maslak Istanbul", tel: "90-212-284-1601", fax: "90-212-284-1609" } ] },
+        americas: { name: "미주", color: "#6c5ce7", locations: [ { name: "HICO America Sales and Technology, Inc.", city: "피츠버그", country: "미국", lat: 40.4406, lng: -79.9959, address: "Three Penn Center West, Suite 300, Pittsburgh, PA 15276", tel: "1-412-787-1170, 1-724-834-1202", fax: "1-412-787-2270" }, { name: "Hyosung HICO, Ltd", city: "멤피스", country: "미국", lat: 35.1495, lng: -90.0490, address: "2865 Riverport Rd, Memphis, TN 38109", tel: "1-901-979-8700", fax: "1-901-942-0775" }, { name: "Hyosung Holdings USA, Inc. (LA Office)", city: "샌디에이고", country: "미국", lat: 32.7157, lng: -117.1611, address: "12770 High Bluff Dr. STE 200, San Diego, CA 92130", tel: "1-858-519-1344" }, { name: "Hyosung Holdings USA, Inc. (Headquarter)", city: "샬럿", country: "미국", lat: 35.2271, lng: -80.8431, address: "15801 Brixham Hill Avenue, Suite 575 Charlotte, NC 28277", tel: "1-704-790-6110", fax: "1-704-790-6109" }, { name: "Hyosung Holdings USA, Inc. (Houston Office)", city: "휴스턴", country: "미국", lat: 29.7604, lng: -95.3698, address: "1400 Broadfield Blvd, 2F Regus, Houston, TX 77084", tel: "1-704-301-5380" }, { name: "HICO America Sales and Technology, Inc. (L.A. Office)", city: "브레아", country: "미국", lat: 33.9161, lng: -117.9003, address: "910 Columbia Street, Brea, CA 92821", tel: "1-714-989-8900", fax: "1-714-989-8901" }, { name: "Hyosung Mexico City S.A. de C.V.", city: "멕시코시티", country: "멕시코", lat: 19.4326, lng: -99.1332, address: "Avenida Paseo de la Reforma 250, Torre A, Piso 20, Colonia Juarez, Delegacion Cuatemoc", tel: "52-55-5540-2766", fax: "52-55-5540-2078" }, { name: "Hyosung Brasil Industria E Comercio De Fibras Ltda.", city: "상파울루", country: "브라질", lat: -23.5505, lng: -46.6333, address: "Av. das Nações Unidas, 12.551 19FL CJ 1901, Brooklin, Edificio World Trade Center", tel: "55-11-5185-4200" }, { name: "Hyosung Heavy Industries Corporation Chile Office", city: "산티아고", country: "칠레", lat: -33.4489, lng: -70.6693, address: "Office 308, Level 3, Cerro El Plomo 5855, Las Condes", tel: "56-2-6465-8640" }, { name: "Hyosung TNC Corporation Panama Office", city: "파나마시티", country: "파나마", lat: 8.9824, lng: -79.5199, address: "International Business Center Piso 8, AVE.Manuel Espinosa Bantista Bella Vista", tel: "507-214-8968", fax: "507-214-8971" } ] },
+        oceania: { name: "오세아니아", color: "#74b9ff", locations: [ { name: "Hyosung Heavy Industries Sydney Office", city: "시드니", country: "호주", lat: -33.8688, lng: 151.2093, address: "Suite 3, Level 3, 201 Miller Street, North Sydney 2060", tel: "61-2-7227-5115" } ] },
+        africa: { name: "아프리카", color: "#fdcb6e", locations: [ { name: "Hyosung South Africa (Proprietary) Limited", city: "요하네스버그", country: "남아프리카공화국", lat: -26.2041, lng: 28.0473, address: "6th Floor, Fredman Towers, 13 Fredman Drive, Sandton, Johannesburg", tel: "27-72-723-0477" } ] }
+    };
+
+    // DOM이 완전히 로드된 후 스크립트 실행
+    window.addEventListener('DOMContentLoaded', function() {
+        if (typeof L === 'undefined') {
+            console.error('Leaflet 라이브러리가 로드되지 않았습니다.');
+            alert('지도 라이브러리를 불러오는데 실패했습니다. 페이지를 새로고침해주세요.');
+            return;
+        }
+
+        const map = initMap();
+        const { markers, stats } = addMarkersToMap(map, networkData);
+        
+        updateLegend(networkData);
+        updateStats(stats);
+
+        // 모든 마커가 보이도록 지도 경계 설정
+        if (markers.getLayers().length > 0) {
+            map.fitBounds(markers.getBounds(), { padding: [50, 50] });
+        }
+    });
+
+    /**
+     * 지도 초기화 함수
+     * @returns {L.Map} Leaflet 맵 객체
+     */
+    function initMap() {
+        const map = L.map('map', {
+            center: [20, 0],
+            zoom: 2,
+            minZoom: 2,
+            maxZoom: 12,
+            worldCopyJump: true
+        });
+
+        // 밝은 테마의 타일 레이어 추가
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        }).addTo(map);
+
+        // 축척 컨트롤 추가
+        L.control.scale({ position: 'bottomleft', metric: true, imperial: false }).addTo(map);
+
+        return map;
+    }
+
+    /**
+     * 지도에 마커를 추가하고 통계 데이터를 반환하는 함수
+     * @param {L.Map} map - Leaflet 맵 객체
+     * @param {object} data - 네트워크 데이터
+     * @returns {object} 마커 클러스터 그룹과 통계 데이터
+     */
+    function addMarkersToMap(map, data) {
+        const markers = L.markerClusterGroup({
+            chunkedLoading: true,
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true,
+            maxClusterRadius: 60
+        });
+
+        let totalOffices = 0;
+        const countries = new Set();
+        const continents = new Set();
+
+        Object.keys(data).forEach(regionKey => {
+            const regionData = data[regionKey];
+            continents.add(regionData.name);
+
+            // 대한민국은 'country' 필드가 없으므로 별도 처리
+            if (regionKey === 'korea') {
+                countries.add(regionData.name);
+            }
+
+            regionData.locations.forEach(location => {
+                totalOffices++;
+                if (location.country) {
+                    countries.add(location.country);
+                }
+
+                const customIcon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div style="background-color: ${regionData.color}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>`,
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10]
+                });
+
+                const marker = L.marker([location.lat, location.lng], {
+                    icon: customIcon,
+                    title: location.name
+                });
+
+                const popupContent = `
+                    <div class="custom-popup">
+                        <h3>${location.city}${location.country ? ', ' + location.country : ''}</h3>
+                        <div class="location-item">
+                            <div class="location-name">${location.name}</div>
+                            <div class="location-address">${location.address}</div>
+                            <div class="location-contact">
+                                ${location.tel ? `Tel: ${location.tel}` : ''}
+                                ${location.fax ? `<br>Fax: ${location.fax}` : ''}
+                            </div>
+                        </div>
+                    </div>`;
+
+                marker.bindPopup(popupContent, { maxWidth: 300, minWidth: 250 });
+                markers.addLayer(marker);
+            });
+        });
+
+        map.addLayer(markers);
+
+        return {
+            markers,
+            stats: {
+                totalCountries: countries.size,
+                totalOffices: totalOffices,
+                totalContinents: continents.size
+            }
+        };
+    }
+    
+    /**
+     * 범례(Legend)를 동적으로 생성하고 업데이트하는 함수
+     * @param {object} data - 네트워크 데이터
+     */
+    function updateLegend(data) {
+        const legendContainer = document.querySelector('.legend');
+        let legendHtml = '<h4>지역별 구분</h4>';
+        
+        Object.keys(data).forEach(regionKey => {
+            const region = data[regionKey];
+            legendHtml += `
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: ${region.color};"></div>
+                    <span>${region.name}</span>
+                </div>`;
+        });
+        
+        legendContainer.innerHTML = legendHtml;
+    }
+
+    /**
+     * 통계 정보를 애니메이션과 함께 업데이트하는 함수
+     * @param {object} stats - 통계 데이터 { totalCountries, totalOffices, totalContinents }
+     */
+    function updateStats(stats) {
+        animateValue(document.getElementById('totalCountries'), 0, stats.totalCountries, 1500);
+        animateValue(document.getElementById('totalOffices'), 0, stats.totalOffices, 2000);
+        animateValue(document.getElementById('totalContinents'), 0, stats.totalContinents, 1000);
+    }
+
+    /**
+     * 숫자 카운팅 애니메이션 함수
+     * @param {HTMLElement} element - 숫자를 표시할 DOM 요소
+     * @param {number} start - 시작 숫자
+     * @param {number} end - 종료 숫자
+     * @param {number} duration - 애니메이션 지속 시간 (ms)
+     */
+    function animateValue(element, start, end, duration) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            element.textContent = Math.floor(progress * (end - start) + start);
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+    </script>
+</body>
+</html>
